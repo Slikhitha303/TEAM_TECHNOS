@@ -1,0 +1,33 @@
+# Import necessary libraries
+
+from pyspark.sql import SparkSession
+
+from pyspark.ml.evaluation import RegressionEvaluator from pyspark.ml.recommendation import ALS
+
+from pyspark.sql.functions import col
+
+# Load MovieLens dataset (you need to upload the dataset to Databricks or provide a path to the dataset)
+
+data = spark.read.option("header", "true").option("inferSchema", "true").csv("dbfs://ratings.csv")
+
+# Split the data into training and testing sets (training, test) = data.randomSplit([0.8,
+
+0.2]) # Build the recommendation model using ALS on the training data
+
+als = ALS(maxIter=10, regParam=0.01, userCol="userId", itemCol="movieId", ratingCol="rating", coldStartStrategy="drop") model = als.fit(training)
+
+# Evaluate the model by computing RMSE on the test data predictions = model.transform(test)
+
+evaluator = RegressionEvaluator(metricName="rmse", labelCol="rating", predictionCol="prediction")
+
+rmse = evaluator.evaluate(predictions)
+
+print("Root Mean Squared Error (RMSE) = " + str(rmse))
+
+#Generate top-N recommendations for all users userRecs = model.recommendForAllUsers(10) #display(user Recs)
+
+#Generate top-N recommendations for a specific user (e.g., user with ID 1)
+
+userId = 1
+
+display(userRecs.filter(col("userId") == userId))
